@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FuZz CarAmbient HU</string>
+    <string name="no_device">No device</string>
+    <string name="scan_connect">Scan</string>
+    <string name="settings_symbol">&#9881;</string>
+    <string name="zone_rgb">RGB</string>
+    <string name="zone_dmx">DMX</string>
+    <string name="mode_button">Mode</string>
+    <string name="label_brightness">Brightness</string>
+    <string name="label_speed">Speed</string>
+    <string name="label_default_colors">Default colors</string>
+    <string name="label_saved_colors">Saved colors</string>
+    <string name="save_button">Save</string>
+    <string name="permission_needed">Bluetooth permission is required to scan for the device</string>
+    <string name="bluetooth_disabled">Turn on Bluetooth to continue</string>
+    <string name="reconnecting">Reconnecting…</string>
+</resources>

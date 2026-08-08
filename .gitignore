@@ -1,0 +1,54 @@
+# =========================
+# Android / Gradle (LedCar)
+# =========================
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+.gradle/
+build/
+local.properties
+proguard/
+*.log
+.navigation/
+captures/
+*.iml
+*.jks
+.idea/
+
+# =========================
+# .NET (LedCar_Simulator)
+# =========================
+obj/
+bin/
+*.user
+*.suo
+
+# Python
+__pycache__/
+*.pyc
+
+# =========================
+# GitHub release publish token (local secret, never commit)
+# =========================
+/LedCar/github_release.properties
+
+# =========================
+# Operating System files
+# =========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# =========================
+# IDE / AI-tool-local, not project history
+# =========================
+.vs/
+.vscode/

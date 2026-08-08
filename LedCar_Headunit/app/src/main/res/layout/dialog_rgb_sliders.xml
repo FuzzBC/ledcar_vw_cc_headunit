@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rgbDialogRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/rgbDialogSwatchSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_swatch_section"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingTop="20dp"
+        android:paddingBottom="16dp">
+
+        <View
+            android:id="@+id/rgbDialogPreviewSwatch"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/tvRgbDialogHex"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#FFFFFF"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rgbDialogBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_slider_section"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:id="@+id/rgbDialogRedRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="2dp">
+
+            <TextView
+                android:id="@+id/tvRgbDialogRedLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="R"
+                android:textColor="#E24B4A"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvDialogRValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="255"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/seekDialogR"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:progressTint="#E24B4A"
+            android:thumbTint="#E24B4A"
+            android:layout_marginBottom="10dp" />
+
+        <LinearLayout
+            android:id="@+id/rgbDialogGreenRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="2dp">
+
+            <TextView
+                android:id="@+id/tvRgbDialogGreenLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="G"
+                android:textColor="#639922"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvDialogGValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="80"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/seekDialogG"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:progressTint="#639922"
+            android:thumbTint="#639922"
+            android:layout_marginBottom="10dp" />
+
+        <LinearLayout
+            android:id="@+id/rgbDialogBlueRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="2dp">
+
+            <TextView
+                android:id="@+id/tvRgbDialogBlueLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="B"
+                android:textColor="#378ADD"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvDialogBValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="80"
+                android:textColor="@color/text_primary"
+                android:textSize="12sp" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/seekDialogB"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:progressTint="#378ADD"
+            android:thumbTint="#378ADD"
+            android:layout_marginBottom="16dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnRgbDone"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/bg_outline_save"
+            android:text="Done"
+            android:textAllCaps="false"
+            android:textColor="@color/btn_save_color"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</LinearLayout>

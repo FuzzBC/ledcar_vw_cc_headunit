@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_page">
+
+    <ScrollView
+        android:id="@+id/mainScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/mainContentColumn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Top-most row: settings (left) / zone toggle (center) / connect (right).
+                 Device name and scan status text are kept (still updated from code)
+                 but hidden - the zone pill now occupies their old spot. -->
+            <LinearLayout
+                android:id="@+id/topBarRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="14dp">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:background="@drawable/bg_pill_button"
+                    android:text="@string/settings_symbol"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tvDeviceSummary"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/no_device"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
+                <!-- Zone toggle: RGB left half / DMX right half, each always showing that zone's own live color (set in MainActivity.applyZoneUi). Tap selects only that half; long-press selects both. A marching dashed border shows which half (or the whole pill) is currently selected. -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center">
+
+                    <FrameLayout
+                        android:id="@+id/zoneToggleContainer"
+                        android:layout_width="204dp"
+                        android:layout_height="64dp"
+                        android:padding="12dp"
+                        android:clipToPadding="false">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnZoneRgb"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:text="@string/zone_rgb"
+                                android:textAllCaps="false"
+                                android:textColor="@android:color/white"
+                                android:textSize="12sp"
+                                android:shadowColor="#99000000"
+                                android:shadowDx="0"
+                                android:shadowDy="1"
+                                android:shadowRadius="2" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnZoneDmx"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:text="@string/zone_dmx"
+                                android:textAllCaps="false"
+                                android:textColor="@android:color/white"
+                                android:textSize="12sp"
+                                android:shadowColor="#99000000"
+                                android:shadowDx="0"
+                                android:shadowDy="1"
+                                android:shadowRadius="2" />
+                        </LinearLayout>
+
+                        <com.ledcar01.controller.MarchingAntsView
+                            android:id="@+id/zoneMarchingBorder"
+                            android:layout_width="0dp"
+                            android:layout_height="0dp" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnConnect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="16dp"
+                    android:background="@drawable/bg_pill_button"
+                    android:text="@string/scan_connect"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/scanStatusText"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+            <!-- Color wheel card: power/mode row now lives inside, right above the wheel -->
+            <LinearLayout
+                android:id="@+id/colorCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="10dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="16dp">
+
+                <!-- Power button + Mode button share the top control line -->
+                <LinearLayout
+                    android:id="@+id/powerModeRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="14dp">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnPower"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:background="@drawable/bg_power_button"
+                        android:enabled="false" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="18dp"
+                        android:background="@drawable/bg_pill_button"
+                        android:text="@string/mode_button"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <com.ledcar01.controller.HsvColorWheelView
+                    android:id="@+id/colorWheel"
+                    android:layout_width="240dp"
+                    android:layout_height="240dp"
+                    android:layout_marginTop="-65dp"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/tvRgbReadout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14dp"
+                    android:background="@drawable/bg_pill_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:text="R 255  G 80  B 80"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    style="@style/SectionLabel"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/label_default_colors" />
+
+                <LinearLayout
+                    android:id="@+id/defaultColorsRow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal" />
+
+                <TextView
+                    style="@style/SectionLabel"
+                    android:layout_gravity="center_horizontal"
+                    android:text="@string/label_saved_colors" />
+
+                <LinearLayout
+                    android:id="@+id/savedColorsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnSaveColor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_pill_button"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="14dp"
+                        android:text="@string/save_button"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp" />
+
+                    <!-- Growable row of eggs: each holds a DMX color (top) and RGB color (bottom). Save appends a new one. -->
+                    <HorizontalScrollView
+                        android:id="@+id/savedEggsScroll"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="14dp"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/savedEggsRow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal" />
+                    </HorizontalScrollView>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Live ambient car-interior preview: real interior photo (base_interior.png)
+                 with placeholder light-strip masks - swap mask_neon_strips/mask_footwell_glow
+                 for real photo-traced assets whenever ready; the tint mechanism in
+                 AmbientLightingController doesn't need any other change. -->
+            <LinearLayout
+                android:id="@+id/ambientPreviewCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_marginTop="16dp">
+
+                <FrameLayout
+                    android:id="@+id/ambientPreviewFrame"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp">
+
+                    <ImageView
+                        android:id="@+id/imgBaseInterior"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="14dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/base_interior" />
+
+                    <!-- Door handle / footwell / storage glow, tinted with the RGB zone color. -->
+                    <ImageView
+                        android:id="@+id/imgFootwellLight"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="14dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/mask_footwell_glow" />
+
+                    <ImageView
+                        android:id="@+id/imgNeonStripLight"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_margin="14dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/mask_neon_strips" /> <!-- Dash neon strip, tinted with the DMX zone color -->
+                </FrameLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Fixed bottom bar: brightness / speed, always visible -->
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_card"
+        android:padding="16dp"
+        android:layout_margin="16dp"
+        android:layout_marginTop="0dp">
+
+        <LinearLayout
+            android:id="@+id/brightnessLabelRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="0dp"
+                android:text="@string/label_brightness" />
+
+            <TextView
+                android:id="@+id/tvBrightnessValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="80%"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/seekBrightness"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="80"
+            android:progressTint="@color/accent"
+            android:thumbTint="@color/accent"
+            android:layout_marginBottom="14dp" />
+
+        <LinearLayout
+            android:id="@+id/speedLabelRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                style="@style/SectionLabel"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="0dp"
+                android:text="@string/label_speed" />
+
+            <TextView
+                android:id="@+id/tvSpeedValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50%"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp" />
+        </LinearLayout>
+        <SeekBar
+            android:id="@+id/seekSpeed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:progress="50"
+            android:progressTint="@color/accent"
+            android:thumbTint="@color/accent" />
+    </LinearLayout>
+
+</LinearLayout>

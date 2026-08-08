@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/eggActionDialogRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvEggActionTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_dialog_header_save"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="18dp"
+        android:text="Saved color"
+        android:textColor="@color/on_save_color"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/eggActionDialogBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_dialog_body"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/tvEggActionMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Replace this saved color with your current color and brightness, or remove it."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginBottom="18dp" />
+
+        <LinearLayout
+            android:id="@+id/eggActionButtonRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnEggActionCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingVertical="10dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_outline_neutral"
+                android:drawableTop="@drawable/ic_egg_cancel"
+                android:drawablePadding="1dp"
+                android:gravity="center"
+                android:text="Cancel"
+                android:textAllCaps="false"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnEggActionUpdate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingVertical="10dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_fill_save"
+                android:drawableTop="@drawable/ic_egg_update"
+                android:drawablePadding="1dp"
+                android:gravity="center"
+                android:text="Update"
+                android:textAllCaps="false"
+                android:textColor="@color/on_save_color"
+                android:textSize="11sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnEggActionRemove"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingVertical="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_outline_danger"
+                android:drawableTop="@drawable/ic_egg_remove"
+                android:drawablePadding="1dp"
+                android:gravity="center"
+                android:text="Remove"
+                android:textAllCaps="false"
+                android:textColor="@color/btn_danger_color"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

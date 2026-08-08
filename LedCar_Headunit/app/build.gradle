@@ -1,0 +1,85 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Version state lives in version.properties (committed - it's the current
+// released version, not a secret) so a build can read it, and the
+// bumpVersionForNextBuild task (bottom of this file) can increment it after
+// a successful release build without editing this file by hand. Mirrors the
+// scheme used by FuzzBC/fuzzapp.
+def versionPropsFile = file("${rootDir}/version.properties")
+def versionProps = new Properties()
+versionProps.load(new FileInputStream(versionPropsFile))
+// -PtestVersionCode=N overrides for a one-off throwaway build (e.g. to
+// install an "older" build for testing the update flow) without ever
+// touching version.properties itself.
+def appVersionCode = project.hasProperty('testVersionCode')
+        ? project.property('testVersionCode').toInteger()
+        : versionProps['versionCode'].toInteger()
+def appVersionMajor = versionProps['versionMajor'] ? versionProps['versionMajor'].toInteger() : 1
+def appVersionName = "${appVersionMajor}." + String.format("%03d", appVersionCode)
+
+android {
+    namespace 'com.ledcar01.controller'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.ledcar01.controller"
+        // Head-unit variant: lowered from 26 to 21 for compatibility with
+        // older Android head units (Junsun and similar brands often ship on
+        // Android 5-7). 21 is the practical floor, not an arbitrary choice -
+        // BLE central-mode APIs this app depends on (BluetoothLeScanner,
+        // full GATT support) only became reliable from API 21 onward; see
+        // BleDeviceManager's connectGattCompat() for the one real API-26+
+        // call this required a fallback for.
+        minSdk 21
+        targetSdk 34
+        versionCode appVersionCode
+        versionName appVersionName
+        // So UpdateChecker's "update available" preview (which only has a bare
+        // versionCode from the GitHub API, not a full versionName) can build
+        // the same "<major>.<versionCode>" string without hardcoding the
+        // major version a second time - see UpdateChecker/MainActivity.
+        buildConfigField "int", "VERSION_MAJOR", "${appVersionMajor}"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable false
+            // Always the debug key - no separate release signingConfig, by
+            // request (matches FuzzBC/fuzzapp). Google Play Protect will flag
+            // installs of this APK as unverified since it's not a "real"
+            // release signature; accepted tradeoff for a sideloaded app.
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    buildFeatures {
+        buildConfig true // AGP 8+ disables this by default; UpdateChecker/MainActivity read BuildConfig.VERSION_MAJOR
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.activity:activity:1.8.2'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'com.google.android.material:material:1.11.0'
+}
+
+// Bumps versionCode for the *next* build after a release has actually been
+// published - so re-running a failed/aborted release build never skips a
+// number, and the currently-checked-out code always matches what's live.
+tasks.register('bumpVersionForNextBuild') {
+    doLast {
+        def next = appVersionCode + 1
+        versionPropsFile.text = "versionMajor=${appVersionMajor}\nversionCode=${next}\n"
+        println "Bumped versionCode ${appVersionCode} -> ${next} (next build will be ${appVersionMajor}.${String.format('%03d', next)})"
+    }
+}

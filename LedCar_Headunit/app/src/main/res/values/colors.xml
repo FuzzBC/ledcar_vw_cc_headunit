@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_page">#101014</color>
+    <color name="surface">#1C1C22</color>
+    <color name="border">#33333A</color>
+    <color name="text_primary">#F5F5F5</color>
+    <color name="text_secondary">#9A9A9F</color>
+    <color name="accent">#EF9F27</color>
+    <color name="danger">#E24B4A</color>
+    <color name="success">#7FE0B0</color>
+    <color name="preview_default">#33333A</color>
+    <color name="btn_settings_color">#A6ADB8</color>
+    <color name="btn_scan_color">#85B7EB</color>
+    <color name="btn_mode_color">#C3A0E8</color>
+    <color name="btn_save_color">#5DCAA5</color>
+    <color name="on_save_color">#04342C</color>
+    <color name="btn_danger_color">#F09595</color>
+    <color name="dialog_header_text">#412402</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>
