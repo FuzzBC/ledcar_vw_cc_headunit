@@ -40,6 +40,19 @@ public class BleDeviceManager {
         void onStatus(String status);
 
         void onDevicesChanged(List<BleConnection> connections);
+
+        /**
+         * Fires exactly when scanning actually starts/stops - unlike
+         * onStatus(), whose free-text messages also cover lots of
+         * per-device events (connecting, connected, disconnected) that
+         * aren't about scan state at all. A listener that inferred
+         * "scanning" from onStatus() substring-matching would see it flip
+         * off the moment the first device starts connecting, even though
+         * the scan itself is still running in the background looking for
+         * more.
+         */
+        default void onScanningChanged(boolean scanning) {
+        }
     }
 
     private static final UUID SERVICE_UUID = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
@@ -48,7 +61,17 @@ public class BleDeviceManager {
 
     private static final int MAX_CONNECTIONS = 6;
     private static final long CONNECT_STAGGER_MS = 220;
+    /** Absolute cap on a scan with nothing found at all - not the common case, just a safety net. */
     private static final long SCAN_TIMEOUT_MS = 12000;
+    /**
+     * Once at least one device is found there's no reason to keep the full
+     * scan window open - stop this soon after instead, so a single nearby
+     * module doesn't force a multi-second wait it doesn't need. Long enough
+     * to still catch a second/third LEDCAR-01 unit advertising a beat later
+     * (multiple simultaneous connections are supported - see MAX_CONNECTIONS),
+     * short enough that "found fast" actually feels fast.
+     */
+    private static final long SCAN_FOUND_GRACE_MS = 2500;
     /**
      * Some head-unit BLE stacks never deliver onCharacteristicWrite for a
      * write that silently failed at the driver level (no error, no
@@ -81,6 +104,8 @@ public class BleDeviceManager {
     private BluetoothAdapter adapter;
     private BluetoothLeScanner scanner;
     private boolean scanning;
+    private boolean scanFoundGraceArmed;
+    private final Runnable stopScanRunnable = this::stopScan;
     private int connectScheduleCounter;
     private boolean writeInFlight;
     private int writeGeneration;
@@ -98,12 +123,20 @@ public class BleDeviceManager {
         this.listener = listener;
         if (listener != null) {
             listener.onDevicesChanged(new ArrayList<>(connections.values()));
+            // Sync a freshly (re)attached listener - e.g. after Activity
+            // recreation mid-scan - to the real current scan state, rather
+            // than leaving it assuming "not scanning" until the next event.
+            listener.onScanningChanged(scanning);
         }
     }
 
     @SuppressLint("MissingPermission")
     public boolean isBluetoothEnabled() {
         return adapter != null && adapter.isEnabled();
+    }
+
+    public boolean isScanning() {
+        return scanning;
     }
 
     public List<BleConnection> getConnections() {
@@ -167,8 +200,10 @@ public class BleDeviceManager {
             return;
         }
         scanning = true;
+        scanFoundGraceArmed = false;
         connectScheduleCounter = 0;
         notifyStatus("Scanning for LEDCAR devices...");
+        notifyScanningChanged(true);
 
         ScanSettings settings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
@@ -178,7 +213,8 @@ public class BleDeviceManager {
         // carry their service UUID in the scan response instead. Matching is
         // done manually below against the merged scan record.
         scanner.startScan(null, settings, scanCallback);
-        mainHandler.postDelayed(this::stopScan, SCAN_TIMEOUT_MS);
+        mainHandler.removeCallbacks(stopScanRunnable);
+        mainHandler.postDelayed(stopScanRunnable, SCAN_TIMEOUT_MS);
     }
 
     @SuppressLint("MissingPermission")
@@ -187,10 +223,12 @@ public class BleDeviceManager {
             return;
         }
         scanning = false;
+        mainHandler.removeCallbacks(stopScanRunnable);
         if (scanner != null) {
             scanner.stopScan(scanCallback);
         }
         notifyStatus(connections.isEmpty() ? "No LEDCAR devices found nearby" : summaryText() + " connected");
+        notifyScanningChanged(false);
     }
 
     private final ScanCallback scanCallback = new ScanCallback() {
@@ -224,6 +262,18 @@ public class BleDeviceManager {
                 long delay = connectScheduleCounter * CONNECT_STAGGER_MS;
                 connectScheduleCounter++;
                 mainHandler.postDelayed(() -> attemptConnect(device), delay);
+
+                // Found something - no need to keep scanning for the full
+                // SCAN_TIMEOUT_MS anymore. Replace the long safety-net stop
+                // with a short grace window instead, so a scan that finds
+                // its device in the first second or two actually stops
+                // quickly instead of visibly "still scanning" for several
+                // more seconds it doesn't need.
+                if (!scanFoundGraceArmed) {
+                    scanFoundGraceArmed = true;
+                    mainHandler.removeCallbacks(stopScanRunnable);
+                    mainHandler.postDelayed(stopScanRunnable, SCAN_FOUND_GRACE_MS);
+                }
             });
         }
 
@@ -507,6 +557,14 @@ public class BleDeviceManager {
         mainHandler.post(() -> {
             if (listener != null) {
                 listener.onDevicesChanged(new ArrayList<>(connections.values()));
+            }
+        });
+    }
+
+    private void notifyScanningChanged(boolean isScanningNow) {
+        mainHandler.post(() -> {
+            if (listener != null) {
+                listener.onScanningChanged(isScanningNow);
             }
         });
     }

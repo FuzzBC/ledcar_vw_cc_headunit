@@ -9,6 +9,22 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.005
+- Fixes the scan shimmer/lock stopping early: `MainActivity` used to infer
+  "still scanning" by substring-matching `BleDeviceManager`'s free-text
+  status messages, so the moment the first found device started
+  connecting ("Connecting to X...") it looked like scanning had ended -
+  shimmer off, controls unlocked - even though the scan was still actively
+  running in the background for up to 12 more seconds. `BleDeviceManager`
+  now reports scan start/stop as its own explicit event
+  (`Listener.onScanningChanged`), independent of status text, so the
+  effect stays on for exactly as long as scanning is actually happening.
+- Scanning now stops itself shortly after the first device is found
+  (2.5s grace window, to still catch a second/third unit advertising a
+  beat later) instead of always running the full ~12s timeout regardless
+  of whether anything's already been found - "found fast" now actually
+  finishes fast.
+
 ## 1.004
 - **Fixes "connected but no command works" on real head-unit hardware.**
   `BleDeviceManager` previously left the write characteristic's write type

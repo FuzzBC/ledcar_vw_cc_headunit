@@ -1230,32 +1230,45 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
      */
     @Override
     public void onStatus(String status) {
+        // Purely a text label now - scanning start/stop and the resulting
+        // control lock/unlock are driven by onScanningChanged() below,
+        // which fires on the real scan lifecycle rather than by guessing
+        // from these free-text messages (onStatus also reports plenty of
+        // per-device events - "Connecting to X...", "X connected" - that
+        // aren't about scan state and would otherwise make the scanning
+        // effect look like it stopped while a scan is still running).
         String s = status.toLowerCase(Locale.US);
         String shown;
         if (s.contains("scanning")) {
             shown = "Scanning…";
-            // Locks everything down the same way a fresh, never-connected launch
-            // does, for as long as the scan runs - covers the auto-retry path too,
-            // not just a manual tap (which already locks immediately on click).
-            isScanning = true;
+        } else if (s.contains("no ledcar devices found")) {
+            shown = "No devices found";
+        } else if (s.contains("connected") && !s.contains("disconnected")) {
+            int count = bleManager.getConnectedCount();
+            shown = count + (count == 1 ? " device found" : " devices found");
+        } else {
+            shown = "";
+        }
+        scanStatusText.setText(shown);
+    }
+
+    /**
+     * Fires exactly when BleDeviceManager's real scan starts/stops - see
+     * that interface method's doc for why this replaced inferring
+     * "scanning" from onStatus()'s text. Owns the shimmer effect and the
+     * scan-time control lock for as long as (and only as long as) a scan
+     * is genuinely in progress.
+     */
+    @Override
+    public void onScanningChanged(boolean scanning) {
+        isScanning = scanning;
+        if (scanning) {
             setConnectedControlsEnabled(false);
             startScanShimmer();
         } else {
-            // Scan just ended (found, not found, or any other terminal status) -
-            // unlock and let the real connection count decide the resulting state.
-            isScanning = false;
             stopScanShimmer();
-            if (s.contains("no ledcar devices found")) {
-                shown = "No devices found";
-            } else if (s.contains("connected") && !s.contains("disconnected")) {
-                int count = bleManager.getConnectedCount();
-                shown = count + (count == 1 ? " device found" : " devices found");
-            } else {
-                shown = "";
-            }
             setConnectedControlsEnabled(bleManager.getConnectedCount() > 0);
         }
-        scanStatusText.setText(shown);
     }
 
     @Override
