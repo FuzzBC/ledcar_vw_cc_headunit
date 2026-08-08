@@ -49,6 +49,16 @@ public class BleDeviceManager {
     private static final int MAX_CONNECTIONS = 6;
     private static final long CONNECT_STAGGER_MS = 220;
     private static final long SCAN_TIMEOUT_MS = 12000;
+    /**
+     * Some head-unit BLE stacks never deliver onCharacteristicWrite for a
+     * write that silently failed at the driver level (no error, no
+     * callback) - without a watchdog, `writeInFlight` latches true forever
+     * and every command after that point queues up and is never sent
+     * again, even though the device still shows "connected". If this fires,
+     * something upstream is wrong and getting unstuck late beats staying
+     * stuck forever.
+     */
+    private static final long WRITE_WATCHDOG_MS = 4000;
 
     private static volatile BleDeviceManager instance;
 
@@ -73,6 +83,7 @@ public class BleDeviceManager {
     private boolean scanning;
     private int connectScheduleCounter;
     private boolean writeInFlight;
+    private int writeGeneration;
     private Listener listener;
 
     private BleDeviceManager(Context appContext) {
@@ -304,6 +315,26 @@ public class BleDeviceManager {
                 return;
             }
             conn.writeCharacteristic = characteristic;
+            // LEDCAR-01 modules are HM-10/CC41-style BLE-UART bridges - they
+            // almost always only declare "Write Without Response"
+            // (PROPERTY_WRITE_NO_RESPONSE), not "Write With Response". Left
+            // unset, a characteristic's write type defaults to
+            // WRITE_TYPE_DEFAULT ("with response"); some head-unit BLE
+            // stacks (seen in the field on Junsun-class hardware) refuse
+            // that outright when the peripheral doesn't declare support for
+            // it - gatt.writeCharacteristic() returns false and no callback
+            // ever fires, which without the writeInFlight fixes below would
+            // silently stall every command after the very first one, while
+            // the device still reports "connected". Explicitly matching the
+            // characteristic's actual declared properties is the real fix;
+            // the checks in drainNext()/watchdog below are the safety net
+            // for stacks that misbehave in other ways.
+            int properties = characteristic.getProperties();
+            if ((properties & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
+                characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+            } else {
+                characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+            }
             gatt.setCharacteristicNotification(characteristic, true);
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CCCD_UUID);
             if (descriptor != null) {
@@ -334,6 +365,7 @@ public class BleDeviceManager {
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             mainHandler.post(() -> {
                 writeInFlight = false;
+                writeGeneration++; // invalidates any watchdog still pending for this write
                 drainNext();
             });
         }
@@ -392,10 +424,40 @@ public class BleDeviceManager {
             if (!conn.writeQueue.isEmpty()) {
                 byte[] next = conn.writeQueue.poll();
                 conn.writeCharacteristic.setValue(next);
+                boolean started = conn.gatt.writeCharacteristic(conn.writeCharacteristic);
+                if (!started) {
+                    // The BLE stack rejected the write synchronously (seen on
+                    // some head-unit chipsets) - onCharacteristicWrite will
+                    // never fire for it, so don't set writeInFlight at all.
+                    // Put the command back at the front of its queue and
+                    // retry shortly rather than dropping it or spinning
+                    // synchronously in a tight loop.
+                    conn.writeQueue.addFirst(next);
+                    notifyStatus(conn.name + ": write rejected, retrying");
+                    mainHandler.postDelayed(this::drainNext, 300);
+                    return;
+                }
                 writeInFlight = true;
-                conn.gatt.writeCharacteristic(conn.writeCharacteristic);
+                int gen = ++writeGeneration;
+                mainHandler.postDelayed(() -> onWriteWatchdog(gen), WRITE_WATCHDOG_MS);
                 return;
             }
+        }
+    }
+
+    /**
+     * Fires WRITE_WATCHDOG_MS after a write started. If onCharacteristicWrite
+     * still hasn't landed for that same write by then, the callback is
+     * presumed lost (a real, observed failure mode on some head-unit BLE
+     * stacks) - force the queue unstuck rather than let every command from
+     * here on silently queue up forever while the device still shows
+     * "connected".
+     */
+    private void onWriteWatchdog(int gen) {
+        if (writeInFlight && gen == writeGeneration) {
+            writeInFlight = false;
+            notifyStatus("Device stopped responding to writes, retrying");
+            drainNext();
         }
     }
 

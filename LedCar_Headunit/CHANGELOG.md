@@ -9,6 +9,26 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.004
+- **Fixes "connected but no command works" on real head-unit hardware.**
+  `BleDeviceManager` previously left the write characteristic's write type
+  unset (defaults to "Write With Response") and never checked whether
+  `gatt.writeCharacteristic()` actually started - on head-unit BLE stacks
+  that reject a with-response write against a peripheral only declaring
+  "Write Without Response" (which is what these LEDCAR-01 modules are),
+  the very first write after connecting could fail synchronously with no
+  callback ever firing, permanently latching the internal write-in-flight
+  flag and silently dropping every command from then on, while the device
+  still showed "connected".
+  - The write characteristic's write type is now set explicitly from its
+    actual declared GATT properties instead of relying on the stack default.
+  - The synchronous return value of `writeCharacteristic()` is now checked;
+    a rejected write is requeued and retried instead of leaving the queue
+    stuck.
+  - A 4-second watchdog now force-clears a stuck write and retries if
+    `onCharacteristicWrite` never lands at all, for stacks that fail in
+    stranger ways than a synchronous `false`.
+
 ## 1.003
 - Reworked `res/layout-land/activity_main.xml` into the "Command Strip"
   arrangement: Settings, Power, the zone pill, Mode and Scan/Connect now
