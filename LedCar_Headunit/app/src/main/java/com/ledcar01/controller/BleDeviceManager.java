@@ -281,7 +281,9 @@ public class BleDeviceManager {
         public void onScanFailed(int errorCode) {
             mainHandler.post(() -> {
                 scanning = false;
+                mainHandler.removeCallbacks(stopScanRunnable);
                 notifyStatus("Scan failed (code " + errorCode + ")");
+                notifyScanningChanged(false);
             });
         }
     };

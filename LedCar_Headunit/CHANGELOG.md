@@ -9,6 +9,14 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.006
+- Small follow-up to 1.005: `onScanFailed` (the rare case where the BLE
+  stack itself rejects starting a scan) now also clears the pending scan
+  timeout and fires `onScanningChanged(false)`, matching `stopScan()` -
+  previously it only cleared the internal `scanning` flag directly, which
+  could leave the shimmer/control-lock stuck on if a scan failed outright
+  instead of timing out or finding something.
+
 ## 1.005
 - Fixes the scan shimmer/lock stopping early: `MainActivity` used to infer
   "still scanning" by substring-matching `BleDeviceManager`'s free-text
