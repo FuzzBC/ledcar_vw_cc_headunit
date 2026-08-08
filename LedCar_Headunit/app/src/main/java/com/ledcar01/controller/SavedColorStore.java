@@ -206,4 +206,15 @@ public class SavedColorStore {
     public int getColorOrderId() {
         return prefs.getInt("color_order_id", Car01Protocol.DEFAULT_COLOR_ORDER);
     }
+
+    // -- Background automation keep-alive (TODO.md item 4) --
+
+    /** Whether LedCarBackgroundService should be running so Tasker/Automate/IFTTT commands work while the app isn't open. Off by default - most people only want this once they've actually set up an automation. */
+    public void setBackgroundServiceEnabled(boolean enabled) {
+        prefs.edit().putBoolean("background_service_enabled", enabled).apply();
+    }
+
+    public boolean getBackgroundServiceEnabled() {
+        return prefs.getBoolean("background_service_enabled", false);
+    }
 }

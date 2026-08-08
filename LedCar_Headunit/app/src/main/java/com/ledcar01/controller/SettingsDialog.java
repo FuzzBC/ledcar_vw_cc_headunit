@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.SwitchCompat;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +65,18 @@ public class SettingsDialog extends Dialog {
         Spinner spinnerColorOrder = findViewById(R.id.spinnerColorOrder);
         EditText editLedCount = findViewById(R.id.editLedCount);
         Button btnConfirm = findViewById(R.id.btnConfirm);
+        SwitchCompat switchBackgroundService = findViewById(R.id.switchBackgroundService);
+
+        switchBackgroundService.setChecked(store.getBackgroundServiceEnabled());
+        switchBackgroundService.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            store.setBackgroundServiceEnabled(isChecked);
+            if (isChecked) {
+                LedCarBackgroundService.start(getContext());
+                Toast.makeText(getContext(), "Listening for automation commands", Toast.LENGTH_SHORT).show();
+            } else {
+                LedCarBackgroundService.stop(getContext());
+            }
+        });
 
         List<String> labels = new ArrayList<>();
         int selectedIndex = 0;

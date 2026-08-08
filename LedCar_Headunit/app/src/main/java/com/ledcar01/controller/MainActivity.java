@@ -157,6 +157,14 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
         // every device that connects (now or later) receives power-on automatically.
         bleManager.broadcastCommand(Car01Protocol.powerOn());
 
+        // TODO.md item 4: if background automation was left enabled (Settings
+        // dialog), make sure the keep-alive service is actually running -
+        // e.g. after the app process was killed and relaunched, or after a
+        // device reboot. Harmless to call when it's already running.
+        if (store.getBackgroundServiceEnabled()) {
+            LedCarBackgroundService.start(this);
+        }
+
         restoreLastState();
         bindViews();
         buildDefaultSwatches();

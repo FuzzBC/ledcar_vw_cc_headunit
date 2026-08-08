@@ -14,6 +14,16 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- Background automation keep-alive (LedCarBackgroundService, see
+         TODO.md item 4): a foreground service so the BLE connection and
+         CommandReceiver survive being backgrounded on a head unit.
+         POST_NOTIFICATIONS is required to actually show the persistent
+         notification a foreground service needs on API 33+; without it the
+         service still runs, Android just silently drops the notification. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
     <!-- Deliberately no android:screenOrientation lock here, unlike the phone
@@ -37,5 +47,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- TODO.md item 2: external automation entry point. Tasker's "Send
+             Intent" action, Automate's "Send intent" block, and (via Tasker
+             as a bridge) IFTTT can all target this receiver directly by
+             package + class, without needing a full plugin SDK on either
+             side - see CommandReceiver's class doc for the full extras
+             contract. exported=true is required for another app's process
+             to reach it at all; there's no dangerous capability behind it
+             (LED color/brightness only), so no signature/custom permission
+             is enforced on the sender. -->
+        <receiver
+            android:name=".CommandReceiver"
+            android:exported="true" />
+
+        <!-- TODO.md item 4: keeps BleDeviceManager's connection (and this
+             receiver's ability to act on it) alive when the app isn't in
+             the foreground - head units are often aggressive about killing
+             backgrounded apps. connectedDevice is the closest match of the
+             API 34 foreground-service types to "maintains a BLE link". -->
+        <service
+            android:name=".LedCarBackgroundService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
     </application>
 </manifest>
