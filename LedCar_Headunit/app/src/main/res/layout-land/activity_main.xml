@@ -1,412 +1,410 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     TODO.md item 3: dedicated head-unit landscape layout. Every view here
-     keeps the exact same android:id as layout/activity_main.xml (the phone
-     portrait layout) - MainActivity.bindViews() findViewById()s all of them
-     by id with zero orientation-specific logic, so this file only needed to
-     be a different *arrangement* of the same views, not a code change.
-     Android picks this over the default layout/ automatically whenever the
-     device is in landscape (head units almost always are; this repo leaves
-     orientation unlocked - see AndroidManifest.xml - specifically so this
-     layout gets used instead of a stretched portrait one).
+     TODO.md item 3: dedicated head-unit landscape layout - "Command Strip"
+     variant (see the design-review artifact this was picked from). Every
+     view here keeps the exact same android:id as layout/activity_main.xml
+     (the phone portrait layout) - MainActivity.bindViews() findViewById()s
+     all of them with zero orientation-specific logic, so this file only
+     needed to be a different *arrangement*, not a code change. Android
+     picks this over the default layout/ automatically whenever the device
+     is in landscape (head units almost always are; this repo leaves
+     orientation unlocked - see AndroidManifest.xml).
 
-     Side-by-side instead of the phone's single vertical stack: left column
-     is everything you actively touch (zone pill, wheel, saved colors),
-     right column is passive/glanceable (ambient preview, brightness/speed).
-     Both columns scroll independently so a short, wide head-unit screen
-     doesn't clip the color wheel or the saved-colors row.
+     Everything you'd tap without thinking - settings, power, the zone pill,
+     mode, scan/connect - lives in one persistent full-width strip at the
+     top edge, the easiest reach zone on a dash-mounted screen. The body
+     below is a left/right split: color-picking on the left, glanceable
+     preview + brightness/speed on the right, each scrolling independently
+     so a short, wide head-unit screen never clips the wheel or the saved-
+     colors row.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/rootContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:background="@color/bg_page">
 
-    <!-- Left column: everything you actively touch. -->
-    <ScrollView
-        android:id="@+id/mainScrollView"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:fillViewport="true">
+    <!-- Command strip: every "reach it in one tap" control, full width. -->
+    <LinearLayout
+        android:id="@+id/topBarRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSettings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:background="@drawable/bg_pill_button"
+            android:text="@string/settings_symbol"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvDeviceSummary"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:text="@string/no_device"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnPower"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="10dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:padding="0dp"
+            android:background="@drawable/bg_power_button"
+            android:enabled="false" />
+
+        <!-- Zone toggle: RGB left half / DMX right half, each showing that
+             zone's own live color. Tap selects only that half; long-press
+             selects both - marching border shows the current selection. -->
         <LinearLayout
-            android:id="@+id/mainContentColumn"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_weight="1"
+            android:gravity="center">
 
-            <LinearLayout
-                android:id="@+id/topBarRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="14dp">
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btnSettings"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:padding="0dp"
-                    android:background="@drawable/bg_pill_button"
-                    android:text="@string/settings_symbol"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/tvDeviceSummary"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:text="@string/no_device"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:visibility="gone" />
+            <FrameLayout
+                android:id="@+id/zoneToggleContainer"
+                android:layout_width="204dp"
+                android:layout_height="56dp"
+                android:padding="10dp"
+                android:clipToPadding="false">
 
                 <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center">
-
-                    <FrameLayout
-                        android:id="@+id/zoneToggleContainer"
-                        android:layout_width="204dp"
-                        android:layout_height="64dp"
-                        android:padding="12dp"
-                        android:clipToPadding="false">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal">
-
-                            <androidx.appcompat.widget.AppCompatButton
-                                android:id="@+id/btnZoneRgb"
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp"
-                                android:text="@string/zone_rgb"
-                                android:textAllCaps="false"
-                                android:textColor="@android:color/white"
-                                android:textSize="12sp"
-                                android:shadowColor="#99000000"
-                                android:shadowDx="0"
-                                android:shadowDy="1"
-                                android:shadowRadius="2" />
-
-                            <androidx.appcompat.widget.AppCompatButton
-                                android:id="@+id/btnZoneDmx"
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp"
-                                android:text="@string/zone_dmx"
-                                android:textAllCaps="false"
-                                android:textColor="@android:color/white"
-                                android:textSize="12sp"
-                                android:shadowColor="#99000000"
-                                android:shadowDx="0"
-                                android:shadowDy="1"
-                                android:shadowRadius="2" />
-                        </LinearLayout>
-
-                        <com.ledcar01.controller.MarchingAntsView
-                            android:id="@+id/zoneMarchingBorder"
-                            android:layout_width="0dp"
-                            android:layout_height="0dp" />
-                    </FrameLayout>
-                </LinearLayout>
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/btnConnect"
-                    android:layout_width="wrap_content"
-                    android:layout_height="38dp"
-                    android:minWidth="0dp"
-                    android:paddingHorizontal="16dp"
-                    android:background="@drawable/bg_pill_button"
-                    android:text="@string/scan_connect"
-                    android:textAllCaps="false"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/scanStatusText"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                android:visibility="gone" />
-
-            <LinearLayout
-                android:id="@+id/colorCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:paddingTop="10dp"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="16dp">
-
-                <LinearLayout
-                    android:id="@+id/powerModeRow"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="10dp">
-
-                    <androidx.appcompat.widget.AppCompatButton
-                        android:id="@+id/btnPower"
-                        android:layout_width="52dp"
-                        android:layout_height="52dp"
-                        android:minWidth="0dp"
-                        android:minHeight="0dp"
-                        android:padding="0dp"
-                        android:background="@drawable/bg_power_button"
-                        android:enabled="false" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
-                    <androidx.appcompat.widget.AppCompatButton
-                        android:id="@+id/btnMode"
-                        android:layout_width="wrap_content"
-                        android:layout_height="42dp"
-                        android:minWidth="0dp"
-                        android:paddingHorizontal="18dp"
-                        android:background="@drawable/bg_pill_button"
-                        android:text="@string/mode_button"
-                        android:textAllCaps="false"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <!-- Smaller than the portrait layout's 240dp - landscape head
-                     units are usually short, and this column already scrolls,
-                     but there's no reason to force a scroll just for the
-                     wheel on a screen that's plenty wide. -->
-                <com.ledcar01.controller.HsvColorWheelView
-                    android:id="@+id/colorWheel"
-                    android:layout_width="200dp"
-                    android:layout_height="200dp"
-                    android:layout_marginTop="-45dp"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/tvRgbReadout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:background="@drawable/bg_pill_button"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp"
-                    android:text="R 255  G 80  B 80"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
-
-                <TextView
-                    style="@style/SectionLabel"
-                    android:layout_gravity="center_horizontal"
-                    android:text="@string/label_default_colors" />
-
-                <LinearLayout
-                    android:id="@+id/defaultColorsRow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="14dp"
-                    android:gravity="center"
-                    android:orientation="horizontal" />
-
-                <TextView
-                    style="@style/SectionLabel"
-                    android:layout_gravity="center_horizontal"
-                    android:text="@string/label_saved_colors" />
-
-                <LinearLayout
-                    android:id="@+id/savedColorsRow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
+                    android:layout_height="match_parent"
                     android:orientation="horizontal">
 
                     <androidx.appcompat.widget.AppCompatButton
-                        android:id="@+id/btnSaveColor"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_pill_button"
-                        android:minWidth="0dp"
-                        android:paddingHorizontal="14dp"
-                        android:text="@string/save_button"
-                        android:textAllCaps="false"
-                        android:textColor="@color/text_primary"
-                        android:textSize="12sp" />
-
-                    <HorizontalScrollView
-                        android:id="@+id/savedEggsScroll"
+                        android:id="@+id/btnZoneRgb"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:layout_marginStart="14dp"
-                        android:scrollbars="none">
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:text="@string/zone_rgb"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:shadowColor="#99000000"
+                        android:shadowDx="0"
+                        android:shadowDy="1"
+                        android:shadowRadius="2" />
 
-                        <LinearLayout
-                            android:id="@+id/savedEggsRow"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal" />
-                    </HorizontalScrollView>
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnZoneDmx"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:text="@string/zone_dmx"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:shadowColor="#99000000"
+                        android:shadowDx="0"
+                        android:shadowDy="1"
+                        android:shadowRadius="2" />
                 </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
 
-    <!-- Right column: glanceable/passive - live preview on top, brightness
-         and speed sliders fixed at the bottom so they're reachable without
-         scrolling regardless of how tall the preview card ends up. -->
-    <LinearLayout
+                <com.ledcar01.controller.MarchingAntsView
+                    android:id="@+id/zoneMarchingBorder"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnMode"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:layout_marginStart="10dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="18dp"
+            android:background="@drawable/bg_pill_button"
+            android:text="@string/mode_button"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnConnect"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_marginStart="10dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="16dp"
+            android:background="@drawable/bg_pill_button"
+            android:text="@string/scan_connect"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/scanStatusText"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+    <!-- Body: color-picking on the left, glanceable preview + sliders on
+         the right - each scrolls on its own. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
         <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:id="@+id/mainScrollView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.1"
             android:fillViewport="true">
 
             <LinearLayout
-                android:id="@+id/ambientPreviewCard"
+                android:id="@+id/mainContentColumn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
                 android:orientation="vertical"
-                android:padding="16dp"
-                android:layout_margin="16dp"
-                android:layout_marginBottom="8dp">
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="16dp">
 
-                <FrameLayout
-                    android:id="@+id/ambientPreviewFrame"
+                <LinearLayout
+                    android:id="@+id/colorCard"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp">
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingTop="16dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="16dp">
 
-                    <ImageView
-                        android:id="@+id/imgBaseInterior"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="14dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/base_interior" />
+                    <com.ledcar01.controller.HsvColorWheelView
+                        android:id="@+id/colorWheel"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_marginBottom="8dp" />
 
-                    <ImageView
-                        android:id="@+id/imgFootwellLight"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="14dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/mask_footwell_glow" />
+                    <TextView
+                        android:id="@+id/tvRgbReadout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:background="@drawable/bg_pill_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="R 255  G 80  B 80"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
 
-                    <ImageView
-                        android:id="@+id/imgNeonStripLight"
+                    <TextView
+                        style="@style/SectionLabel"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/label_default_colors" />
+
+                    <LinearLayout
+                        android:id="@+id/defaultColorsRow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="14dp"
+                        android:gravity="center"
+                        android:orientation="horizontal" />
+
+                    <TextView
+                        style="@style/SectionLabel"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/label_saved_colors" />
+
+                    <LinearLayout
+                        android:id="@+id/savedColorsRow"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_margin="14dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/mask_neon_strips" />
-                </FrameLayout>
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btnSaveColor"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_pill_button"
+                            android:minWidth="0dp"
+                            android:paddingHorizontal="14dp"
+                            android:text="@string/save_button"
+                            android:textAllCaps="false"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
+
+                        <HorizontalScrollView
+                            android:id="@+id/savedEggsScroll"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="14dp"
+                            android:scrollbars="none">
+
+                            <LinearLayout
+                                android:id="@+id/savedEggsRow"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal" />
+                        </HorizontalScrollView>
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
 
         <LinearLayout
-            android:id="@+id/bottomBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:padding="16dp"
-            android:layout_margin="16dp"
-            android:layout_marginTop="0dp">
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.9"
+            android:orientation="vertical">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:id="@+id/ambientPreviewCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:layout_margin="16dp"
+                    android:layout_marginBottom="8dp">
+
+                    <FrameLayout
+                        android:id="@+id/ambientPreviewFrame"
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp">
+
+                        <ImageView
+                            android:id="@+id/imgBaseInterior"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="14dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/base_interior" />
+
+                        <ImageView
+                            android:id="@+id/imgFootwellLight"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="14dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/mask_footwell_glow" />
+
+                        <ImageView
+                            android:id="@+id/imgNeonStripLight"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_margin="14dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/mask_neon_strips" />
+                    </FrameLayout>
+                </LinearLayout>
+            </ScrollView>
 
             <LinearLayout
-                android:id="@+id/brightnessLabelRow"
+                android:id="@+id/bottomBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="6dp">
+                android:orientation="vertical"
+                android:background="@drawable/bg_card"
+                android:padding="16dp"
+                android:layout_margin="16dp"
+                android:layout_marginTop="0dp">
 
-                <TextView
-                    style="@style/SectionLabel"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_marginBottom="0dp"
-                    android:text="@string/label_brightness" />
-
-                <TextView
-                    android:id="@+id/tvBrightnessValue"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/brightnessLabelRow"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="80%"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
-            </LinearLayout>
-            <SeekBar
-                android:id="@+id/seekBrightness"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:progress="80"
-                android:progressTint="@color/accent"
-                android:thumbTint="@color/accent"
-                android:layout_marginBottom="14dp" />
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="6dp">
 
-            <LinearLayout
-                android:id="@+id/speedLabelRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="6dp">
+                    <TextView
+                        style="@style/SectionLabel"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginBottom="0dp"
+                        android:text="@string/label_brightness" />
 
-                <TextView
-                    style="@style/SectionLabel"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_marginBottom="0dp"
-                    android:text="@string/label_speed" />
-
-                <TextView
-                    android:id="@+id/tvSpeedValue"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:id="@+id/tvBrightnessValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="80%"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+                <SeekBar
+                    android:id="@+id/seekBrightness"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="50%"
-                    android:textColor="@color/text_primary"
-                    android:textSize="13sp" />
+                    android:max="100"
+                    android:progress="80"
+                    android:progressTint="@color/accent"
+                    android:thumbTint="@color/accent"
+                    android:layout_marginBottom="14dp" />
+
+                <LinearLayout
+                    android:id="@+id/speedLabelRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        style="@style/SectionLabel"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginBottom="0dp"
+                        android:text="@string/label_speed" />
+
+                    <TextView
+                        android:id="@+id/tvSpeedValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="50%"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+                <SeekBar
+                    android:id="@+id/seekSpeed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="50"
+                    android:progressTint="@color/accent"
+                    android:thumbTint="@color/accent" />
             </LinearLayout>
-            <SeekBar
-                android:id="@+id/seekSpeed"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:progress="50"
-                android:progressTint="@color/accent"
-                android:thumbTint="@color/accent" />
         </LinearLayout>
     </LinearLayout>
 

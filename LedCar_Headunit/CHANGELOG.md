@@ -9,6 +9,19 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.003
+- Reworked `res/layout-land/activity_main.xml` into the "Command Strip"
+  arrangement: Settings, Power, the zone pill, Mode and Scan/Connect now
+  live in one persistent full-width band across the top edge - the easiest
+  reach zone on a dash-mounted screen - instead of Power/Mode sitting in a
+  separate card below a left-column-only top bar. Body underneath keeps
+  V1.002's left (color-picking) / right (preview + brightness/speed) split.
+  Picked from a 5-variant design review; see the project's design notes for
+  the other options considered.
+- `colorCard` no longer wraps a `powerModeRow` in the landscape layout (that
+  content moved to the top strip) - the portrait phone layout is
+  unaffected, this only changes `layout-land`.
+
 ## 1.002
 - Implements TODO.md items 2-4 (Tasker/Automate/IFTTT command intent, head-unit
   landscape layout, background keep-alive service) - see that file for the
