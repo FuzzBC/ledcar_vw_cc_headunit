@@ -38,12 +38,12 @@
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
-    <!-- Deliberately no android:screenOrientation lock here, unlike the phone
-         build - head units are usually landscape, but the layout itself is
-         still the phone's portrait-first design (see TODO.md item 3, not yet
-         done). Locking to landscape now would just stretch that layout
-         sideways; leaving orientation unlocked at least lets it open in
-         whatever the device's natural orientation is. -->
+    <!-- Locked to landscape (unlike the phone build, which is portrait-
+         locked): head units are always landscape, and as of V1.002 there's
+         a real purpose-built landscape layout (res/layout-land, the
+         "Command Strip" arrangement) instead of just the phone's portrait
+         layout rendered sideways - so there's no reason to ever show the
+         portrait one on this build. -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -53,6 +53,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.LedCar01Controller">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -100,6 +101,7 @@
         <activity
             android:name=".MonitorConsoleActivity"
             android:exported="false"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.LedCar01Controller" />
     </application>
 </manifest>

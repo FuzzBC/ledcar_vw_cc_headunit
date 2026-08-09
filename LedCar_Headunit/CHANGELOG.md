@@ -9,6 +9,16 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.008
+- Locks `MainActivity` and `MonitorConsoleActivity` to landscape
+  (`android:screenOrientation="landscape"`) - previously orientation was
+  left unlocked since there was no real landscape layout yet and locking
+  would've just stretched the portrait one sideways. As of V1.002 there's
+  a purpose-built landscape layout (`res/layout-land`, "Command Strip"),
+  so there's no reason left to ever show the portrait one on this build.
+  Head units are always landscape; this matches the phone build's own
+  portrait lock in spirit, just the other orientation.
+
 ## 1.007
 - **New: Broadcast Monitor**, a diagnostic tool for reverse-engineering
   head-unit integrations - a button next to Settings toggles a floating

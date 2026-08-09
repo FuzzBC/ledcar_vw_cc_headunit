@@ -18,7 +18,7 @@ as they land, but isn't where new features start.
 |---|---|---|
 | `minSdk` | 26 | **21** - covers older head-unit Android builds |
 | `connectGatt` | 5-arg overload (API 26+ only) | Falls back to the classic 3-arg overload below API 26 |
-| Orientation | Locked portrait | Unlocked, with a dedicated landscape layout (see below) |
+| Orientation | Locked portrait | Locked landscape, its own purpose-built layout (see below) |
 | External automation | - | `CommandReceiver` + background keep-alive service (see below) |
 | Update checks against | `FuzzBC/ledcar_vw_cc` releases | `FuzzBC/ledcar_vw_cc_headunit` releases (this repo) |
 | App name shown on device | FuZz CarAmbient | FuZz CarAmbient HU |
