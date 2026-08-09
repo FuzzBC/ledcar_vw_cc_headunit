@@ -57,13 +57,28 @@ keeps `BleDeviceManager`'s singleton connection alive independent of
 `MainActivity`. `CommandReceiver` starts it automatically the moment a
 command arrives; it can also be switched on ahead of time from Settings
 → "Background automation" so the connection is already warm before the
-first automation fires. Stops itself after 5 minutes with no active
-connection and no new command, rather than running forever once enabled.
+first automation fires.
 
-Still open: no battery-optimization / "allow background activity"
-exemption handling - this varies a lot by OEM skin on head-unit devices
-and needs real hardware to get right, not something to guess at from an
-emulator.
+As of V1.010:
+- While that toggle is on, the service genuinely never self-stops (it
+  previously stopped itself after 5 minutes idle regardless of the toggle
+  - fixed, since that directly defeated "keep this running all the time").
+  The idle-timeout now only applies to the original transient case: a
+  single external command arriving while the persistent toggle is off.
+- `BootReceiver` resumes the service right after a reboot if the toggle
+  was left on (`BOOT_COMPLETED` / `QUICKBOOT_POWERON`), so it doesn't need
+  a human to reopen `MainActivity` first.
+- Settings prompts for the "ignore battery optimizations" exemption when
+  the toggle is switched on - the one such exemption that's a documented,
+  requestable API.
+
+Still open: OEM-specific "autostart manager" / "protected apps" settings
+(common on head-unit Android builds, especially Chinese-market ROMs) can
+still block boot-time starts or kill a foreground service regardless of
+the above - there's no public API to request that exemption, it has to be
+granted manually per-device, and which OEM skin a given head unit runs
+varies too much to code around generically. Needs real hardware to find
+out how much this actually bites in practice.
 
 ## 5. Receiving commands from Agama Launcher — not implementable as scoped; descoped
 

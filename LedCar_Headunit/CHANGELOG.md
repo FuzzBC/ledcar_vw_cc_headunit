@@ -9,6 +9,25 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.010
+- **"Background automation" now actually means "always on".** Previously
+  `LedCarBackgroundService` stopped itself after 5 minutes with no active
+  connection *regardless* of the Settings toggle - meaning turning it on
+  didn't reliably keep the app running the way the setting implied. It now
+  never self-stops while the toggle is on; the 5-minute idle-timeout only
+  applies to the original transient case (a single external command
+  arriving while the toggle itself is off).
+- **New: auto-starts after a reboot.** `BootReceiver` resumes the
+  background service on `BOOT_COMPLETED`/`QUICKBOOT_POWERON` if the toggle
+  was left on, so a head unit that loses power overnight comes back up
+  ready for automation without anyone opening the app first.
+- **New: prompts for battery-optimization exemption** when the toggle is
+  switched on, since OEM battery managers (common on head-unit Android
+  builds) can otherwise still kill a foreground service. Documented as a
+  partial fix in `TODO.md` item 4 - OEM-specific "autostart manager"/
+  "protected apps" settings aren't covered by any public API and may still
+  need a manual per-device allowance.
+
 ## 1.009
 - The Monitor bubble now toggles: tapping it while the console is already
   open minimizes it instead of stacking a second instance on top. The

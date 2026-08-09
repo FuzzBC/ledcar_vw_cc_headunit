@@ -23,6 +23,20 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- BootReceiver: resumes LedCarBackgroundService after a reboot if
+         Background automation was left on - without this the service (and
+         CommandReceiver's ability to act on anything) would stay dead
+         until a human happened to open MainActivity again. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Lets Settings -> "Background automation" prompt for the "ignore
+         battery optimizations" exemption - without it, some OEM battery
+         managers (common on head-unit Android builds) can still kill a
+         foreground service even though the platform-standard mechanisms
+         say it shouldn't. Not a guarantee on every device (OEM "autostart
+         manager" / "protected apps" settings vary and aren't controllable
+         via any public API - see TODO.md item 4), but the one exemption
+         that IS a documented, requestable API. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <!-- Broadcast Monitor (BroadcastMonitorService, MonitorConsoleActivity):
          a diagnostic tool, head-unit build only - floats a bubble that
@@ -83,6 +97,19 @@
             android:name=".LedCarBackgroundService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <!-- Resumes the above after a reboot - see BootReceiver's class
+             doc. QUICKBOOT_POWERON is the same event under the name some
+             OEM ROMs (common on head units) fire instead of/alongside the
+             standard action. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
 
         <!-- Broadcast Monitor: floating bubble + background Intent logger.
              specialUse is the documented catch-all foreground-service type

@@ -25,12 +25,14 @@ import androidx.core.app.NotificationCompat;
  * BleDeviceManager + Car01Protocol the UI uses.
  * <p>
  * Started by {@link CommandReceiver} the moment an external automation
- * command arrives (Tasker/Automate/IFTTT-via-Tasker, see that class), and
- * can also be started manually from Settings ("Keep running in background"
- * - see SettingsDialog) for people who want the connection kept warm even
- * before the first command shows up, since a cold BLE scan+connect can take
- * a few seconds and a "sunset" automation firing once a day shouldn't have
- * to eat that latency every time.
+ * command arrives (Tasker/Automate/IFTTT-via-Tasker, see that class), or
+ * kept running continuously via Settings -> "Background automation" (see
+ * SettingsDialog) for people who want the connection kept warm even before
+ * the first command shows up, since a cold BLE scan+connect can take a few
+ * seconds and a "sunset" automation firing once a day shouldn't have to eat
+ * that latency every time. {@link BootReceiver} resumes it right after
+ * device boot if that toggle was left on, so it doesn't need MainActivity
+ * to ever be opened by a human to start working again.
  * <p>
  * Deliberately minimal: no work queue, no retry/backoff policy beyond what
  * BleDeviceManager already does for reconnects. If a command arrives before
@@ -60,11 +62,13 @@ public class LedCarBackgroundService extends Service {
     private final Runnable idleStop = this::stopSelf;
 
     private BleDeviceManager bleManager;
+    private SavedColorStore store;
 
     @Override
     public void onCreate() {
         super.onCreate();
         bleManager = BleDeviceManager.getInstance(this);
+        store = new SavedColorStore(this);
         ensureChannel();
     }
 
@@ -89,12 +93,16 @@ public class LedCarBackgroundService extends Service {
             bleManager.startScan();
         }
 
-        // Nothing keeps this service alive forever on its own initiative -
-        // if no automation command shows up and nothing connects, stop after
-        // a while rather than sitting in the foreground/notification tray
-        // indefinitely. Any new command (or the explicit "keep running"
-        // toggle re-firing ACTION_KEEP_ALIVE) resets this timer.
-        handler.postDelayed(idleStop, IDLE_TIMEOUT_MS);
+        // Settings -> "Background automation" being ON *is* the "keep this
+        // running all the time" contract - it must never self-stop while
+        // that's the case, regardless of connection state. The idle-timeout
+        // only applies to the transient case this service was originally
+        // built for: a single external command arrived while the persistent
+        // toggle itself was off, spinning this up just long enough to
+        // deliver that one command before cleaning itself up again.
+        if (!store.getBackgroundServiceEnabled()) {
+            handler.postDelayed(idleStop, IDLE_TIMEOUT_MS);
+        }
 
         return START_STICKY;
     }
