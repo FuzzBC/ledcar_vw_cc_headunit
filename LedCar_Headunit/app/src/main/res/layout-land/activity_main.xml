@@ -48,21 +48,6 @@
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
 
-        <!-- Broadcast Monitor toggle - head-unit build only, see
-             BroadcastMonitorService's class doc. Not present on the phone
-             build (ledcar_vw_cc). -->
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/btnMonitor"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:padding="0dp"
-            android:background="@drawable/bg_pill_button"
-            android:text="@string/monitor_symbol"
-            android:textSize="16sp" />
-
         <TextView
             android:id="@+id/tvDeviceSummary"
             android:layout_width="0dp"

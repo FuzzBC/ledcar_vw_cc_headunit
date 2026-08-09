@@ -10,13 +10,11 @@ import android.graphics.Outline;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.provider.Settings;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.widget.Button;
@@ -63,7 +61,6 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
     private Button btnConnect;
     private Button btnPower;
     private Button btnSettings;
-    private Button btnMonitor;
     private FrameLayout zoneToggleContainer;
     private MarchingAntsView zoneMarchingBorder;
     private ShimmerDrawable scanShimmer;
@@ -149,16 +146,6 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
                 }
             });
 
-    /** "Draw over other apps" is a user-granted settings toggle, not a runtime permission dialog - there's no result data to read, just re-check Settings.canDrawOverlays() when we come back. */
-    private final ActivityResultLauncher<Intent> overlayPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (Settings.canDrawOverlays(this)) {
-                    setMonitorEnabled(true);
-                } else {
-                    Toast.makeText(this, "Broadcast Monitor needs \"Draw over other apps\" to show its bubble", Toast.LENGTH_LONG).show();
-                }
-            });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -186,20 +173,6 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
         applyZoneUi();
         updateRgbReadout();
         setConnectedControlsEnabled(bleManager.getConnectedCount() > 0);
-
-        // Broadcast Monitor: resume if it was left on last session, but only
-        // if the overlay permission is actually still granted - it can be
-        // revoked from system Settings independently of this app, and
-        // re-launching the service without it would just silently fail to
-        // show the bubble while the button lied about being "on".
-        if (store.getMonitorEnabled()) {
-            if (Settings.canDrawOverlays(this)) {
-                BroadcastMonitorService.start(this);
-                updateMonitorButtonVisual(true);
-            } else {
-                store.setMonitorEnabled(false);
-            }
-        }
 
         checkForUpdate(); // fire-and-forget; silent unless a newer release is found
     }
@@ -344,7 +317,6 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
         btnConnect = findViewById(R.id.btnConnect);
         btnPower = findViewById(R.id.btnPower);
         btnSettings = findViewById(R.id.btnSettings);
-        btnMonitor = findViewById(R.id.btnMonitor);
         zoneToggleContainer = findViewById(R.id.zoneToggleContainer);
         // Hard-clip everything inside to the pill's true rounded silhouette -
         // without this, a button's own background or the border glow's blur
@@ -566,8 +538,6 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
                 bleManager.broadcastCommand(Car01Protocol.setConfigSpi(pixelCount, colorOrderId));
             }
         }).show());
-
-        btnMonitor.setOnClickListener(v -> toggleMonitor());
 
         btnZoneRgb.setOnClickListener(v -> selectSingleZone(Car01Protocol.Zone.RGB));
         btnZoneDmx.setOnClickListener(v -> selectSingleZone(Car01Protocol.Zone.DMX));
@@ -1204,41 +1174,6 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
      * so the colored state reads as "the app is actually live" rather than
      * just decoration.
      */
-    /**
-     * The Monitor button next to Settings - head-unit build only, see
-     * BroadcastMonitorService's class doc. Independent of BLE connection
-     * state (unlike the other utility buttons), so it gets its own small
-     * visual toggle instead of piggybacking on updateUtilityButtonColors().
-     */
-    private void toggleMonitor() {
-        boolean nowEnabled = !store.getMonitorEnabled();
-        if (nowEnabled && !Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "Allow \"Draw over other apps\" for the Monitor bubble, then it'll turn on", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-            overlayPermissionLauncher.launch(intent);
-            return;
-        }
-        setMonitorEnabled(nowEnabled);
-    }
-
-    private void setMonitorEnabled(boolean enabled) {
-        store.setMonitorEnabled(enabled);
-        if (enabled) {
-            BroadcastMonitorService.start(this);
-        } else {
-            BroadcastMonitorService.stop(this);
-        }
-        updateMonitorButtonVisual(enabled);
-    }
-
-    private void updateMonitorButtonVisual(boolean enabled) {
-        if (enabled) {
-            btnMonitor.setBackgroundResource(R.drawable.bg_outline_scan);
-        } else {
-            btnMonitor.setBackgroundResource(R.drawable.bg_pill_button);
-        }
-    }
-
     private void updateUtilityButtonColors(boolean connected) {
         if (connected) {
             btnSettings.setBackgroundResource(R.drawable.bg_outline_settings);

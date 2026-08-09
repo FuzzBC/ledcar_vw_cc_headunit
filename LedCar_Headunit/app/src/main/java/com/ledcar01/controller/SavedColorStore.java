@@ -217,48 +217,4 @@ public class SavedColorStore {
     public boolean getBackgroundServiceEnabled() {
         return prefs.getBoolean("background_service_enabled", false);
     }
-
-    // -- Broadcast Monitor (head-unit only diagnostic tool) --
-
-    public void setMonitorEnabled(boolean enabled) {
-        prefs.edit().putBoolean("monitor_enabled", enabled).apply();
-    }
-
-    public boolean getMonitorEnabled() {
-        return prefs.getBoolean("monitor_enabled", false);
-    }
-
-    /**
-     * Extra broadcast actions to watch on top of BroadcastMonitorService's
-     * built-in starter list - e.g. an action string found by decompiling a
-     * head unit's launcher APK. Stored newline-joined since action strings
-     * never contain newlines themselves.
-     */
-    public void addCustomWatchedAction(String action) {
-        List<String> current = getCustomWatchedActions();
-        if (!current.contains(action)) {
-            current.add(action);
-            prefs.edit().putString("monitor_custom_actions", String.join("\n", current)).apply();
-        }
-    }
-
-    public void removeCustomWatchedAction(String action) {
-        List<String> current = getCustomWatchedActions();
-        if (current.remove(action)) {
-            prefs.edit().putString("monitor_custom_actions", String.join("\n", current)).apply();
-        }
-    }
-
-    public List<String> getCustomWatchedActions() {
-        String joined = prefs.getString("monitor_custom_actions", "");
-        List<String> result = new ArrayList<>();
-        if (!joined.isEmpty()) {
-            for (String action : joined.split("\n")) {
-                if (!action.trim().isEmpty()) {
-                    result.add(action.trim());
-                }
-            }
-        }
-        return result;
-    }
 }
