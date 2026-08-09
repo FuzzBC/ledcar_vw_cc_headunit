@@ -19,13 +19,32 @@ import java.util.List;
  * running. See that service's class doc for what this can and can't
  * actually see - this is a reverse-engineering aid, not a universal
  * broadcast sniffer.
+ * <p>
+ * Tapping the bubble again while this is the foreground activity minimizes
+ * it instead of opening a second one - see {@link #minimizeIfVisible} and
+ * {@code BroadcastMonitorService.openConsole()}. Runs in its own task
+ * ({@code singleTask} + a distinct {@code taskAffinity} in the manifest)
+ * so that minimize only ever affects this console, never MainActivity's
+ * own task underneath it.
  */
 public class MonitorConsoleActivity extends AppCompatActivity {
+
+    /** Set while this is the resumed, foreground instance - null otherwise. Used only to answer "is the console currently open?" from the Service; not a general-purpose Activity reference. */
+    private static MonitorConsoleActivity activeInstance;
 
     private ArrayAdapter<String> adapter;
     private SavedColorStore store;
 
     private final MonitorLog.Listener logListener = entry -> runOnUiThread(this::refreshList);
+
+    /** Minimizes the console's own task if it's currently in the foreground. Returns true if it did so (caller should not also start a new instance). */
+    static boolean minimizeIfVisible() {
+        if (activeInstance != null) {
+            activeInstance.moveTaskToBack(true);
+            return true;
+        }
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +90,20 @@ public class MonitorConsoleActivity extends AppCompatActivity {
     protected void onStop() {
         MonitorLog.removeListener(logListener);
         super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        activeInstance = this;
+    }
+
+    @Override
+    protected void onPause() {
+        if (activeInstance == this) {
+            activeInstance = null;
+        }
+        super.onPause();
     }
 
     private void updateWatchedActionsLabel() {

@@ -9,6 +9,13 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.009
+- The Monitor bubble now toggles: tapping it while the console is already
+  open minimizes it instead of stacking a second instance on top. The
+  console runs in its own task (`singleTask` + a distinct `taskAffinity`)
+  so minimizing it only ever backgrounds the console, never `MainActivity`
+  underneath it.
+
 ## 1.008
 - Locks `MainActivity` and `MonitorConsoleActivity` to landscape
   (`android:screenOrientation="landscape"`) - previously orientation was

@@ -98,10 +98,17 @@
                 android:value="Floating diagnostic bubble that logs broadcast Intents for reverse-engineering head-unit integrations" />
         </service>
 
+        <!-- Its own task (taskAffinity distinct from the app's default,
+             singleTask so re-tapping the bubble never stacks a second
+             instance) - so the bubble's tap-to-open/tap-to-minimize toggle
+             (see BroadcastMonitorService.openConsole()) only ever affects
+             this console's own task, never MainActivity's. -->
         <activity
             android:name=".MonitorConsoleActivity"
             android:exported="false"
             android:screenOrientation="landscape"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.ledcar01.controller.monitor"
             android:theme="@style/Theme.LedCar01Controller" />
     </application>
 </manifest>

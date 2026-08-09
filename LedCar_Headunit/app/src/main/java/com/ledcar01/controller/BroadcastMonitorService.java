@@ -250,7 +250,15 @@ public class BroadcastMonitorService extends Service {
         }
     }
 
+    /**
+     * Tap-to-open, tap-again-to-minimize: if the console is already the
+     * foreground activity, send its task to the background instead of
+     * launching a second one on top of itself.
+     */
     private void openConsole() {
+        if (MonitorConsoleActivity.minimizeIfVisible()) {
+            return;
+        }
         unreadCount = 0;
         updateBadge();
         Intent intent = new Intent(this, MonitorConsoleActivity.class);
