@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple pulse/activity-monitor glyph for the foreground-service
+     notification icon (status bar icons must be a flat white shape, not
+     the emoji glyph used on the in-app button/bubble). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2,13 L7,13 L9,8 L12,18 L14,11 L16,13 L22,13 L22,11 L17,11 L14,8 L11,17 L9,4 L6,11 L2,11 Z" />
+</vector>

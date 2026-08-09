@@ -9,6 +9,25 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.007
+- **New: Broadcast Monitor**, a diagnostic tool for reverse-engineering
+  head-unit integrations - a button next to Settings toggles a floating
+  bubble (needs "draw over other apps"). Tap the bubble to open a live
+  console of broadcast Intents this app can see: timestamp, action,
+  best-effort source, and extras. Built-in watch list covers battery,
+  screen, headset, audio-routing, Bluetooth state, and this app's own
+  `CommandReceiver` traffic; the console lets you add any other action
+  string on the fly (e.g. one found by decompiling a head unit's launcher
+  APK with jadx) without restarting anything.
+  - Honest about a real platform limit: Android does not let a normal app
+    eavesdrop on every broadcast on the system, and does not expose a
+    broadcast's sender identity to receivers by default - this watches a
+    curated, extensible list, it isn't a universal sniffer.
+  - Runs as its own foreground service (`BroadcastMonitorService`),
+    independent of the automation keep-alive service from TODO item 4, so
+    it survives switching away to trigger whatever you're trying to catch.
+  - Head-unit build only - not present in the phone build (`ledcar_vw_cc`).
+
 ## 1.006
 - Small follow-up to 1.005: `onScanFailed` (the rare case where the BLE
   stack itself rejects starting a scan) now also clears the pending scan

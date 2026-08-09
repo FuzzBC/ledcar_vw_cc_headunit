@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The floating "Monitor" bubble added directly via WindowManager (not
+     part of any Activity) - see BroadcastMonitorService.addBubble(). Tap
+     opens MonitorConsoleActivity; drag moves it anywhere on screen. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/bubbleIcon"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_power_button"
+        android:elevation="6dp"
+        android:gravity="center"
+        android:text="@string/monitor_symbol"
+        android:textSize="22sp" />
+
+    <TextView
+        android:id="@+id/bubbleBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="-4dp"
+        android:layout_marginEnd="-4dp"
+        android:background="@drawable/bg_pill_button"
+        android:backgroundTint="@color/danger"
+        android:elevation="7dp"
+        android:minWidth="18dp"
+        android:minHeight="18dp"
+        android:gravity="center"
+        android:paddingHorizontal="4dp"
+        android:text="1"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+</FrameLayout>

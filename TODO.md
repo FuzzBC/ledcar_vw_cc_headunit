@@ -94,6 +94,14 @@ sending an explicit broadcast - including, if Agama ever grows one, a
 future Agama automation feature - could drive this app through it without
 further changes here.
 
+As of V1.007, **Broadcast Monitor** (the button next to Settings) is the
+practical way to actually find out what Junsun's own launcher/OS or Agama
+broadcasts on a real unit - a floating bubble opens a live log of
+broadcast Intents this app can see, and lets you add a custom action
+string to watch (e.g. one found by decompiling the launcher APK with
+jadx) without rebuilding. If that turns up a real, confirmed action
+string worth reacting to, that's the point to revisit this item for real.
+
 ---
 
 *Items 2-4 all shipped together in V1.002 since they're interdependent

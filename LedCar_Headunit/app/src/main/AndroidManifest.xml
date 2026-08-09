@@ -24,6 +24,18 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Broadcast Monitor (BroadcastMonitorService, MonitorConsoleActivity):
+         a diagnostic tool, head-unit build only - floats a bubble that
+         opens a live log of broadcast Intents this app can see, to help
+         reverse-engineer what a head-unit's own launcher/OS (Junsun, or
+         Agama) actually sends, before building a real integration against
+         it. SYSTEM_ALERT_WINDOW is the "draw over other apps" permission
+         the floating bubble needs; the service itself is foreground so it
+         survives being backgrounded while you go poke around in another
+         app to trigger something. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
     <!-- Deliberately no android:screenOrientation lock here, unlike the phone
@@ -70,5 +82,24 @@
             android:name=".LedCarBackgroundService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <!-- Broadcast Monitor: floating bubble + background Intent logger.
+             specialUse is the documented catch-all foreground-service type
+             for cases (like an overlay bubble utility) that don't fit any
+             of the more specific categories - the PROPERTY below is the
+             short justification API 34 requires alongside it. -->
+        <service
+            android:name=".BroadcastMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Floating diagnostic bubble that logs broadcast Intents for reverse-engineering head-unit integrations" />
+        </service>
+
+        <activity
+            android:name=".MonitorConsoleActivity"
+            android:exported="false"
+            android:theme="@style/Theme.LedCar01Controller" />
     </application>
 </manifest>

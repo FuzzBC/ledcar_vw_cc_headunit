@@ -4,6 +4,8 @@
     <string name="no_device">No device</string>
     <string name="scan_connect">Scan</string>
     <string name="settings_symbol">&#9881;</string>
+    <string name="monitor_symbol">📡</string> <!-- 📡 satellite antenna -->
+    <string name="monitor_console_title">Broadcast Monitor</string>
     <string name="zone_rgb">RGB</string>
     <string name="zone_dmx">DMX</string>
     <string name="mode_button">Mode</string>
