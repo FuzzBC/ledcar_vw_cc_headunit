@@ -1,15 +1,9 @@
 package com.ledcar01.controller;
 
-import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
-import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Drives the live car-interior ambient preview: a base interior image with
@@ -56,16 +50,17 @@ public class AmbientLightingController {
     }
 
     /**
-     * Below 2% the real strip is effectively off, so the preview cuts to fully dark. Above
-     * that floor it maps the 0-100 slider range onto a 50-100 visible-intensity range
-     * (0->50%, 50->75%, 100->100%) so the glow stays visibly present at low brightness
-     * instead of gradually vanishing.
+     * Maps the 0-100 slider range onto a 50-100 visible-intensity range
+     * (0->50%, 50->75%, 100->100%) so the glow stays visibly present at low
+     * brightness instead of gradually vanishing - including at the very
+     * bottom of the range: 0-2% no longer cuts the preview to fully dark,
+     * it just settles at the same 50% floor as any other low setting.
+     * Powering the strip off entirely is a separate, explicit action
+     * (see turnOffAmbientLights/fadeOut) - this mapping is only about how
+     * dim "on" gets to look.
      */
     private static int percentToAlpha(int percent) {
         int clamped = Math.max(0, Math.min(100, percent));
-        if (clamped < 2) {
-            return 0;
-        }
         double mapped = 50.0 + clamped * 0.5;
         return Math.round((float) (mapped / 100.0 * 255));
     }
@@ -109,18 +104,23 @@ public class AmbientLightingController {
     }
 
     /**
-     * Mimics a selected DMX/RGB effect in the preview instead of a flat static
-     * tint: a single-color effect breathes between full and dim, a multi-color
-     * "gradient" effect crossfades smoothly through the list, and a "jump"
-     * effect hard-cuts between colors. Stops automatically on the next call to
-     * setFootwellGlowColor (see stopFootwellEffectPreview).
+     * Plays a selected DMX/RGB effect's <b>real</b> pattern on this preview
+     * layer instead of a flat static tint - the actual archetype/color/
+     * timing data extracted from the vendor app's own animated preview
+     * assets (see {@link EffectVisual}'s class doc), not a guess from the
+     * effect's name. This is deliberately the one place in the app that
+     * shows what a selected effect really does: it plays out on the shape
+     * of the real strip (the neon-strip mask, for DMX) rather than on an
+     * abstract preview widget elsewhere. Stops automatically on the next
+     * call to setFootwellGlowColor/setNeonStripColor (see
+     * stopFootwellEffectPreview/stopNeonStripEffectPreview).
      */
-    public void previewFootwellEffect(List<Integer> colors, boolean jump) {
-        footwellEffectAnimator = startEffectAnimator(imgFootwellLight, footwellEffectAnimator, colors, jump);
+    public void previewFootwellEffect(EffectVisual effect) {
+        footwellEffectAnimator = startEffectAnimator(imgFootwellLight, footwellEffectAnimator, effect);
     }
 
-    public void previewNeonStripEffect(List<Integer> colors, boolean jump) {
-        neonStripEffectAnimator = startEffectAnimator(imgNeonStripLight, neonStripEffectAnimator, colors, jump);
+    public void previewNeonStripEffect(EffectVisual effect) {
+        neonStripEffectAnimator = startEffectAnimator(imgNeonStripLight, neonStripEffectAnimator, effect);
     }
 
     /** Stops the footwell effect preview - caller should immediately set a real static color after this. */
@@ -139,36 +139,22 @@ public class AmbientLightingController {
         return null;
     }
 
-    private static ValueAnimator startEffectAnimator(ImageView view, ValueAnimator existing, List<Integer> colors, boolean jump) {
+    private static ValueAnimator startEffectAnimator(ImageView view, ValueAnimator existing, EffectVisual effect) {
         if (existing != null) {
             existing.cancel();
         }
-        List<Integer> sequence = colors;
-        if (colors.size() == 1) {
-            int c = colors.get(0);
-            int dim = Color.rgb(Color.red(c) / 4, Color.green(c) / 4, Color.blue(c) / 4);
-            sequence = new ArrayList<>();
-            sequence.add(c);
-            sequence.add(dim);
-        }
-        int steps = sequence.size();
-        List<Integer> finalSequence = sequence;
-        ArgbEvaluator evaluator = new ArgbEvaluator();
-        ValueAnimator animator = ValueAnimator.ofFloat(0f, steps);
-        animator.setDuration(steps * (jump ? 500L : 900L));
+        long start = System.currentTimeMillis();
+        // Duration is arbitrary - the update listener drives color purely
+        // off wall-clock elapsed time via EffectVisual.colorAt(), not off
+        // the animator's own fraction, so this only needs to tick often
+        // enough to look smooth (~30ms, matching the source GIFs' own
+        // frame delay) and never actually needs to finish.
+        ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
+        animator.setDuration(30);
         animator.setRepeatCount(ValueAnimator.INFINITE);
-        animator.setInterpolator(new LinearInterpolator());
         animator.addUpdateListener(a -> {
-            float t = (float) a.getAnimatedValue();
-            int i = ((int) t) % steps;
-            int next = (i + 1) % steps;
-            int color;
-            if (jump) {
-                color = finalSequence.get(i);
-            } else {
-                float frac = t - (int) t;
-                color = (int) evaluator.evaluate(frac, finalSequence.get(i), finalSequence.get(next));
-            }
+            long elapsed = System.currentTimeMillis() - start;
+            int color = effect.colorAt(elapsed);
             view.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
         });
         animator.start();

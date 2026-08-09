@@ -5,30 +5,35 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingHorizontal="8dp"
-    android:paddingVertical="5dp"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="8dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true">
 
+    <!-- Static color swatch - see EffectAdapter#colorsForName. The real
+         animated reproduction of whichever effect is selected lives on the
+         ambient preview's neon-strip mask instead (see
+         AmbientLightingController.previewNeonStripEffect), not duplicated
+         here in the scrolling list. -->
     <View
         android:id="@+id/effectPreview"
-        android:layout_width="18dp"
-        android:layout_height="11dp" />
+        android:layout_width="26dp"
+        android:layout_height="15dp" />
 
     <TextView
         android:id="@+id/effectName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
         android:textColor="@color/text_primary"
-        android:textSize="11sp" />
+        android:textSize="13sp" />
 
     <View
         android:id="@+id/effectSelectedDot"
-        android:layout_width="6dp"
-        android:layout_height="6dp"
+        android:layout_width="7dp"
+        android:layout_height="7dp"
         android:layout_marginStart="8dp"
         android:background="@drawable/dot_selected"
         android:visibility="invisible" />

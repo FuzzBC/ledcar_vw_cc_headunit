@@ -9,6 +9,23 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
+## 1.011
+- **Ambient preview now plays a selected effect's real pattern**, not a
+  flat tint - picking a DMX or RGB mode animates the actual neon-strip
+  (DMX) / footwell (RGB) mask on the car-interior preview using colors and
+  timing read directly out of the vendor app's own animated preview assets
+  (`res/raw/effects.json`), classified into jump/gradient/breathe/flash
+  archetypes - not guessed from the effect's name. `EffectVisual.colorAt()`
+  drives the animation; see that class's doc for exactly how the data was
+  derived (every frame of all 234 known effects was scanned, not sampled).
+- Mode picker rows stay a simple static color swatch (no live animation
+  there - the real animated version plays where you're actually looking,
+  on the ambient preview), just wider than before (26x15dp vs 18x11dp).
+- **Ambient brightness no longer cuts to black below 2%** - it settles at
+  the same 50% floor as the rest of the low end of the range instead.
+  Powering the strip fully off is unaffected, still a separate action.
+- Ported from `ledcar_vw_cc` V1.011.
+
 ## 1.010
 - **"Background automation" now actually means "always on".** Previously
   `LedCarBackgroundService` stopped itself after 5 minutes with no active

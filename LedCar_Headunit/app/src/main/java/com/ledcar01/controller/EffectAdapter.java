@@ -18,10 +18,14 @@ import java.util.Map;
 
 /**
  * RecyclerView adapter for the effects list. Preview swatches are cheap and
- * static — built once per bind from color keywords already present in the
+ * static - built once per bind from color keywords already present in the
  * effect name (RD/GN/BU/... abbreviations for DMX names, full color words
- * for RGB names) — no live per-row animation, so scrolling 211 DMX rows
- * stays instant.
+ * for RGB names) - no live per-row animation, so scrolling 211 DMX rows
+ * stays instant. The real animated reproduction of whichever effect is
+ * actually selected lives on the ambient preview's neon-strip mask instead
+ * (see AmbientLightingController.previewNeonStripEffect) - it plays the
+ * effect where you're actually looking, on the shape of the real strip,
+ * rather than a second copy of it here in the picker list.
  */
 public class EffectAdapter extends RecyclerView.Adapter<EffectAdapter.ViewHolder> {
 
@@ -116,7 +120,7 @@ public class EffectAdapter extends RecyclerView.Adapter<EffectAdapter.ViewHolder
         return drawable;
     }
 
-    /** Same color-keyword extraction used for the list row swatches - shared so the ambient preview can mimic a selected effect. */
+    /** Same color-keyword extraction used for the list row swatches - shared so the ambient preview's static (non-effect) tint can mimic a color-named mode too. */
     public static List<Integer> colorsForName(String name) {
         String upper = name.toUpperCase(Locale.US);
         if (upper.contains("7 COLOR") || upper.contains("SEVEN-COLOR") || upper.contains("SEVEN COLOR")

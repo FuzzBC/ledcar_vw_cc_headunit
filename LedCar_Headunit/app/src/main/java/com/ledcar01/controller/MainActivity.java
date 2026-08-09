@@ -558,15 +558,15 @@ public class MainActivity extends AppCompatActivity implements BleDeviceManager.
                 activateZone(zone);
                 bleManager.broadcastCommand(Car01Protocol.setMode(id, zone));
                 store.setLastModeId(zone, id);
-                // Ambient preview mimics the selected effect instead of a flat
-                // tint, so picking a mode reads the same way on-screen as it
-                // will on the real strip.
-                List<Integer> colors = EffectAdapter.colorsForName(name);
-                boolean jump = name.toLowerCase(Locale.US).contains("jump");
+                // Ambient preview plays the effect's real pattern instead of a
+                // flat tint, so picking a mode reads the same way on-screen as
+                // it will on the real strip - see EffectVisual's class doc for
+                // where this data actually comes from.
+                EffectVisual effect = EffectVisual.forEffect(MainActivity.this, zone, id, name);
                 if (zone == Car01Protocol.Zone.RGB) {
-                    ambientController.previewFootwellEffect(colors, jump);
+                    ambientController.previewFootwellEffect(effect);
                 } else {
-                    ambientController.previewNeonStripEffect(colors, jump);
+                    ambientController.previewNeonStripEffect(effect);
                 }
                 // A mode is now active - Speed becomes usable.
                 updateControlsLockState();
