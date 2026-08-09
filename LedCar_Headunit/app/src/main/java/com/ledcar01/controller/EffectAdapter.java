@@ -1,7 +1,6 @@
 package com.ledcar01.controller;
 
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +16,12 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * RecyclerView adapter for the effects list. Preview swatches are cheap and
- * static — built once per bind from color keywords already present in the
- * effect name (RD/GN/BU/... abbreviations for DMX names, full color words
- * for RGB names) — no live per-row animation, so scrolling 211 DMX rows
- * stays instant.
+ * RecyclerView adapter for the effects list. Each row's swatch is a live
+ * animated {@link EffectPreviewView} playing that effect's real pattern
+ * (see {@link EffectVisual}), not a static gradient rectangle - only the
+ * ~10-15 rows actually bound/visible at once ever animate, since
+ * {@link #onViewRecycled} stops a row's animation the moment RecyclerView
+ * recycles it off-screen.
  */
 public class EffectAdapter extends RecyclerView.Adapter<EffectAdapter.ViewHolder> {
 
@@ -85,7 +85,7 @@ public class EffectAdapter extends RecyclerView.Adapter<EffectAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         EffectItem item = items.get(position);
         holder.name.setText(item.name);
-        holder.preview.setBackground(buildPreviewDrawable(item.name));
+        holder.preview.setEffect(EffectVisual.forEffect(holder.preview.getContext(), item.id, item.name));
         holder.dot.setVisibility(item.id == selectedId ? View.VISIBLE : View.INVISIBLE);
         holder.itemView.setOnClickListener(v -> {
             selectedId = item.id;
@@ -95,28 +95,21 @@ public class EffectAdapter extends RecyclerView.Adapter<EffectAdapter.ViewHolder
     }
 
     @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        // Belt-and-suspenders alongside EffectPreviewView's own
+        // onDetachedFromWindow stop - RecyclerView detaches recycled views
+        // from the window anyway, but making the intent explicit here means
+        // this doesn't silently break if that recycling strategy ever changes.
+        holder.preview.setEffect(null);
+        super.onViewRecycled(holder);
+    }
+
+    @Override
     public int getItemCount() {
         return items.size();
     }
 
-    private GradientDrawable buildPreviewDrawable(String name) {
-        List<Integer> colors = colorsForName(name);
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setCornerRadius(6f);
-        if (colors.size() == 1) {
-            drawable.setColor(colors.get(0));
-        } else {
-            int[] arr = new int[colors.size()];
-            for (int i = 0; i < colors.size(); i++) {
-                arr[i] = colors.get(i);
-            }
-            drawable.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
-            drawable.setColors(arr);
-        }
-        return drawable;
-    }
-
-    /** Same color-keyword extraction used for the list row swatches - shared so the ambient preview can mimic a selected effect. */
+    /** Same color-keyword extraction used historically for the list row swatches - kept for the ambient preview, which mimics a selected effect with a static gradient rather than a live animation. */
     public static List<Integer> colorsForName(String name) {
         String upper = name.toUpperCase(Locale.US);
         if (upper.contains("7 COLOR") || upper.contains("SEVEN-COLOR") || upper.contains("SEVEN COLOR")
@@ -141,7 +134,7 @@ public class EffectAdapter extends RecyclerView.Adapter<EffectAdapter.ViewHolder
     }
 
     static final class ViewHolder extends RecyclerView.ViewHolder {
-        final View preview;
+        final EffectPreviewView preview;
         final TextView name;
         final View dot;
 

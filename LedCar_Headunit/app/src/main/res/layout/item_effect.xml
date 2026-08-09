@@ -5,30 +5,34 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingHorizontal="8dp"
-    android:paddingVertical="5dp"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="10dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true">
 
-    <View
+    <!-- Live-animated swatch (EffectPreviewView) instead of a static
+         gradient rectangle - see EffectVisual/EffectPreviewView. Sized up
+         from the original 18x11dp so the actual jump/gradient/breathe/flash
+         motion reads clearly instead of just hinting at a color. -->
+    <com.ledcar01.controller.EffectPreviewView
         android:id="@+id/effectPreview"
-        android:layout_width="18dp"
-        android:layout_height="11dp" />
+        android:layout_width="46dp"
+        android:layout_height="24dp" />
 
     <TextView
         android:id="@+id/effectName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
         android:textColor="@color/text_primary"
-        android:textSize="11sp" />
+        android:textSize="13sp" />
 
     <View
         android:id="@+id/effectSelectedDot"
-        android:layout_width="6dp"
-        android:layout_height="6dp"
+        android:layout_width="7dp"
+        android:layout_height="7dp"
         android:layout_marginStart="8dp"
         android:background="@drawable/dot_selected"
         android:visibility="invisible" />
