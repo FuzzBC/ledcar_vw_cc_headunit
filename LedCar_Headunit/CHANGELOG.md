@@ -9,23 +9,6 @@ Used as the release notes body when publishing via `publish_release.ps1`
 (the script pulls the entry matching the current `versionName` straight out
 of this file).
 
-## 1.011
-- **Mode picker effect previews now actually animate**, playing each
-  effect's real pattern (jump/gradient/breathe/flash) instead of a flat
-  static color swatch. The 23 RGB-tab effects (135-157) use colors and
-  timing read directly from the vendor app's own animated preview assets,
-  not guessed from the effect name - see `EffectVisual`'s class doc and
-  `res/raw/effects.json` (new: effect data now lives in a JSON resource,
-  not a hardcoded Java table, so retuning one is a data edit). The 211
-  DMX-tab effects use name-derived colors/archetype, matching the fidelity
-  of the vendor app's own DMX preview (which likewise doesn't simulate
-  true per-pixel chase motion - that only happens on the real hardware).
-- Mode picker rows are noticeably bigger (swatch 18x11dp → 46x24dp, more
-  padding, larger text) so the animation is actually visible, not a sliver.
-- New `EffectPreviewView`: each row's swatch drives its own animation loop
-  only while attached/visible - scrolling a 211-row DMX list never has
-  more than the ~10-15 on-screen rows actually animating.
-
 ## 1.010
 - **"Background automation" now actually means "always on".** Previously
   `LedCarBackgroundService` stopped itself after 5 minutes with no active
